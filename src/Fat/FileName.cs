@@ -36,15 +36,28 @@ namespace DiscUtils.Fat
         private static readonly byte[] InvalidBytes = new byte[] { 0x22, 0x2A, 0x2B, 0x2C, 0x2E, 0x2F, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F, 0x5B, 0x5C, 0x5D, 0x7C };
 
         private byte[] _raw;
+        private LongFileName _longFileName;
 
-        public FileName(byte[] data, int offset)
+        public FileName(byte[] data, int offset, string longFileName = null)
         {
             _raw = new byte[11];
             Array.Copy(data, offset, _raw, 0, 11);
+            _longFileName = !string.IsNullOrEmpty(longFileName) ? new LongFileName(longFileName) : null;
         }
 
-        public FileName(string name, Encoding encoding)
+        public FileName(byte[] data, int offset, LongFileName longFileName)
         {
+            _raw = new byte[11];
+            Array.Copy(data, offset, _raw, 0, 11);
+            _longFileName = longFileName;
+        }
+
+
+        public FileName(string longname, Encoding encoding, Func<string, string> getShortName)
+        {
+            _longFileName = new LongFileName(longname);
+            var name = getShortName(longname);
+
             _raw = new byte[11];
             byte[] bytes = encoding.GetBytes(name.ToUpperInvariant());
 
@@ -102,9 +115,14 @@ namespace DiscUtils.Fat
             }
         }
 
-        public static FileName FromPath(string path, Encoding encoding)
+        public bool HasLongFilename
         {
-            return new FileName(Utilities.GetFileFromPath(path), encoding);
+            get { return _longFileName != null; }
+        }
+
+        public static FileName FromPath(string path, Encoding encoding, Func<string, string> getShortName)
+        {
+            return new FileName(Utilities.GetFileFromPath(path), encoding, getShortName);
         }
 
         public static bool operator ==(FileName a, FileName b)
@@ -119,17 +137,23 @@ namespace DiscUtils.Fat
 
         public string GetDisplayName(Encoding encoding)
         {
-            return GetSearchName(encoding).TrimEnd('.');
+            return GetSearchName(encoding);
         }
 
         public string GetSearchName(Encoding encoding)
         {
-            return encoding.GetString(_raw, 0, 8).TrimEnd() + "." + encoding.GetString(_raw, 8, 3).TrimEnd();
+            return HasLongFilename ? _longFileName.Filename.TrimEnd() : GetRawName(encoding);
         }
 
-        public string GetRawName(Encoding encoding)
+        internal string GetRawName(Encoding encoding)
         {
-            return encoding.GetString(_raw, 0, 11).TrimEnd();
+            var ext = encoding.GetString(_raw, 8, 3).TrimEnd();
+            return encoding.GetString(_raw, 0, 8).TrimEnd() + (string.IsNullOrEmpty(ext) ? "" : $".{ext}");
+        }
+
+        public string GetLongName()
+        {
+            return _longFileName.Filename;
         }
 
         public FileName Deleted()
@@ -138,7 +162,7 @@ namespace DiscUtils.Fat
             Array.Copy(_raw, data, 11);
             data[0] = 0xE5;
 
-            return new FileName(data, 0);
+            return new FileName(data, 0, _longFileName);
         }
 
         public bool IsDeleted()

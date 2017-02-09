@@ -145,6 +145,7 @@
     <Compile Include="Dmg\PartitionInfo.cs" />
     <Compile Include="Dmg\UdifPartitionTable.cs" />
     <Compile Include="Ext\ExtFileSystemOptions.cs" />
+    <Compile Include="Fat\LongFileName.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="HfsPlus\AttributeKey.cs" />
     <Compile Include="HfsPlus\CompressionAttribute.cs" />

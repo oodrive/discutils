@@ -717,7 +717,7 @@ namespace DiscUtils.Fat
 
             if (entryId < 0)
             {
-                return parent.OpenFile(FileName.FromPath(path, FatOptions.FileNameEncoding), mode, access);
+                return parent.OpenFile(FileName.FromPath(path, FatOptions.FileNameEncoding, parent.GetShortName), mode, access);
             }
 
             DirectoryEntry dirEntry = parent.GetEntry(entryId);
@@ -1040,7 +1040,7 @@ namespace DiscUtils.Fat
             }
 
             DirectoryEntry newEntry = new DirectoryEntry(sourceEntry);
-            newEntry.Name = FileName.FromPath(destinationFile, FatOptions.FileNameEncoding);
+            newEntry.Name = FileName.FromPath(destinationFile, FatOptions.FileNameEncoding, sourceDir.GetShortName);
             newEntry.FirstCluster = 0;
 
             Directory destDir;
@@ -1057,7 +1057,7 @@ namespace DiscUtils.Fat
                 DirectoryEntry destEntry = destDir.GetEntry(destEntryId);
                 if ((destEntry.Attributes & FatAttributes.Directory) != 0)
                 {
-                    newEntry.Name = FileName.FromPath(sourceFile, FatOptions.FileNameEncoding);
+                    newEntry.Name = FileName.FromPath(sourceFile, FatOptions.FileNameEncoding, destDir.GetShortName);
                     destinationFile = Utilities.CombinePaths(destinationFile, Utilities.GetFileFromPath(sourceFile));
 
                     destEntryId = GetDirectoryEntry(destinationFile, out destDir);
@@ -1109,7 +1109,7 @@ namespace DiscUtils.Fat
                 FileName name;
                 try
                 {
-                    name = new FileName(pathElements[i], FatOptions.FileNameEncoding);
+                    name = new FileName(pathElements[i], FatOptions.FileNameEncoding, _rootDir.GetShortName);
                 }
                 catch (ArgumentException ae)
                 {
@@ -1397,7 +1397,7 @@ namespace DiscUtils.Fat
                 throw new IOException("Source directory doesn't exist");
             }
 
-            destParent.AttachChildDirectory(FileName.FromPath(destinationDirectoryName, FatOptions.FileNameEncoding), GetDirectory(sourceDirectoryName));
+            destParent.AttachChildDirectory(FileName.FromPath(destinationDirectoryName, FatOptions.FileNameEncoding, destParent.GetShortName), GetDirectory(sourceDirectoryName));
             sourceParent.DeleteEntry(sourceId, false);
         }
 
@@ -1425,7 +1425,7 @@ namespace DiscUtils.Fat
             }
 
             DirectoryEntry newEntry = new DirectoryEntry(sourceEntry);
-            newEntry.Name = FileName.FromPath(destinationName, FatOptions.FileNameEncoding);
+            newEntry.Name = FileName.FromPath(destinationName, FatOptions.FileNameEncoding, sourceDir.GetShortName);
 
             Directory destDir;
             long destEntryId = GetDirectoryEntry(destinationName, out destDir);
@@ -1441,7 +1441,7 @@ namespace DiscUtils.Fat
                 DirectoryEntry destEntry = destDir.GetEntry(destEntryId);
                 if ((destEntry.Attributes & FatAttributes.Directory) != 0)
                 {
-                    newEntry.Name = FileName.FromPath(sourceName, FatOptions.FileNameEncoding);
+                    newEntry.Name = FileName.FromPath(sourceName, FatOptions.FileNameEncoding, destDir.GetShortName);
                     destinationName = Utilities.CombinePaths(destinationName, Utilities.GetFileFromPath(sourceName));
 
                     destEntryId = GetDirectoryEntry(destinationName, out destDir);
@@ -1885,7 +1885,7 @@ namespace DiscUtils.Fat
             }
             else
             {
-                entryId = dir.FindEntry(new FileName(pathEntries[pathOffset], FatOptions.FileNameEncoding));
+                entryId = dir.FindEntry(new FileName(pathEntries[pathOffset], FatOptions.FileNameEncoding, dir.GetShortName));
                 if (entryId >= 0)
                 {
                     if (pathOffset == pathEntries.Length - 1)
@@ -1927,7 +1927,9 @@ namespace DiscUtils.Fat
 
                 if ((isDir && dirs) || (!isDir && files))
                 {
-                    if (regex.IsMatch(de.Name.GetSearchName(FatOptions.FileNameEncoding)))
+                    var searchName = de.Name.GetSearchName(FatOptions.FileNameEncoding);
+                    string regexName = (searchName.IndexOf('.') == -1) ? searchName + "." : searchName;
+                    if (regex.IsMatch(regexName))
                     {
                         results.Add(Utilities.CombinePaths(path, de.Name.GetDisplayName(FatOptions.FileNameEncoding)));
                     }

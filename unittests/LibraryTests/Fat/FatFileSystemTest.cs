@@ -53,7 +53,7 @@ namespace DiscUtils.Fat
 
                 string[] dirs = fs.GetDirectories("");
                 Assert.AreEqual(1, dirs.Length);
-                Assert.AreEqual(upperDE, dirs[0]); // Uppercase
+                Assert.AreEqual(lowerDE, dirs[0]); // Lowercase
 
                 Assert.IsTrue(fs.DirectoryExists(lowerDE));
                 Assert.IsTrue(fs.DirectoryExists(upperDE));
@@ -113,13 +113,13 @@ namespace DiscUtils.Fat
             FatFileSystem fs = FatFileSystem.FormatFloppy(new MemoryStream(), FloppyDiskType.HighDensity, "FLOPPY_IMG ");
 
             fs.CreateDirectory(@"UnItTeSt");
-            Assert.AreEqual("UNITTEST", fs.Root.GetDirectories("UNITTEST")[0].Name);
+            Assert.AreEqual("UnItTeSt", fs.Root.GetDirectories("UNITTEST")[0].Name);
 
             fs.CreateDirectory(@"folder\subflder");
-            Assert.AreEqual("FOLDER", fs.Root.GetDirectories("FOLDER")[0].Name);
+            Assert.AreEqual("folder", fs.Root.GetDirectories("FOLDER")[0].Name);
 
             fs.CreateDirectory(@"folder\subflder");
-            Assert.AreEqual("SUBFLDER", fs.Root.GetDirectories("FOLDER")[0].GetDirectories("SUBFLDER")[0].Name);
+            Assert.AreEqual("subflder", fs.Root.GetDirectories("FOLDER")[0].GetDirectories("SUBFLDER")[0].Name);
 
         }
 

@@ -366,7 +366,7 @@ namespace DiscUtils.Fat
             else
             {
                 pos = _endOfEntries;
-                _endOfEntries += 32;
+                _endOfEntries += 32 * newEntry.EntryCount;
             }
 
             // Put the new entry into it's slot
@@ -433,14 +433,17 @@ namespace DiscUtils.Fat
             _selfEntryLocation = -1;
             _parentEntryLocation = -1;
 
+            DirectoryEntryEncoding encoding = new DirectoryEntryEncoding();
+
             while (_dirStream.Position < _dirStream.Length)
             {
                 long streamPos = _dirStream.Position;
-                DirectoryEntry entry = new DirectoryEntry(_fileSystem.FatOptions, _dirStream, _fileSystem.FatVariant);
+                DirectoryEntry entry = encoding.GetDirectoryEntry(_fileSystem.FatOptions, _dirStream, _fileSystem.FatVariant);
 
                 if (entry.Attributes == (FatAttributes.ReadOnly | FatAttributes.Hidden | FatAttributes.System | FatAttributes.VolumeId))
                 {
                     // Long File Name entry
+                    _entries.Add(streamPos, entry);
                 }
                 else if (entry.Name.IsDeleted())
                 {
@@ -523,6 +526,20 @@ namespace DiscUtils.Fat
             {
                 _dirStream.Dispose();
             }
+        }
+
+        public string GetShortName(string name)
+        {
+            foreach (long id in _entries.Keys)
+            {
+                DirectoryEntry focus = _entries[id];
+                if (string.Compare(focus.Name.GetDisplayName(_fileSystem.FatOptions.FileNameEncoding), name, StringComparison.OrdinalIgnoreCase) == 0 && (focus.Attributes & FatAttributes.VolumeId) == 0)
+                {
+                    return focus.Name.GetRawName(_fileSystem.FatOptions.FileNameEncoding);
+                }
+            }
+
+            return name;
         }
     }
 }
