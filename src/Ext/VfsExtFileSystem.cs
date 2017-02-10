@@ -30,7 +30,8 @@ namespace DiscUtils.Ext
         internal const IncompatibleFeatures SupportedIncompatibleFeatures =
             IncompatibleFeatures.FileType
             | IncompatibleFeatures.FlexBlockGroups
-            | IncompatibleFeatures.Extents;
+            | IncompatibleFeatures.Extents
+            | IncompatibleFeatures.NeedsRecovery;
 
         private BlockGroup[] _blockGroups;
 

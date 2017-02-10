@@ -4,3 +4,4 @@ obj/
 *.user
 DiscUtilsSigningKey.snk
 project.lock.json
+/src/DiscUtils.dll.xml
